@@ -11,14 +11,27 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Configurar conexión a base de datos
-const pool = new Pool({
-  host: process.env.DB_HOST || 'postgres-db',
-  port: 5432,
-  database: 'crud_db',
-  user: 'postgres',
-  password: 'postgres'
-});
+const isProduction = !!process.env.DATABASE_URL;
+
+let pool;
+
+if (isProduction) {
+  // 🔹 Config para Render (usa DATABASE_URL)
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+} else {
+  // 🔹 Config local (Docker Compose)
+  pool = new Pool({
+    host: process.env.DB_HOST || 'postgres-db',
+    port: 5432,
+    database: 'crud_db',
+    user: 'postgres',
+    password: 'postgres'
+  });
+}
+
 
 // GET - Todos los usuarios
 app.get('/api/users', async (req, res) => {
